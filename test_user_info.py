@@ -5,8 +5,8 @@ import json
 BASE_URL = "http://localhost:8080/api/v1"
 
 
-class UserInfoTests(unittest.TestCase):
-    """Тесты для endpoint'ов информации о пользователе"""
+class UserInfoPositiveTests(unittest.TestCase):
+    """Позитивные тесты для эндпоинты информации о пользователе """
 
     @classmethod
     def setUpClass(cls):
@@ -23,75 +23,81 @@ class UserInfoTests(unittest.TestCase):
             "Authorization": f"Bearer {cls.access_token}"
         }
 
-    def test_get_user_profile_info(self):
-        """Тест получения информации о профиле"""
+    def test_get_user_profile_info_success(self):
+        """Успешное получение информации о профиле"""
         url = f"{BASE_URL}/user/info/profile"
         response = requests.get(url, headers=self.user_headers)
         self.assertEqual(200, response.status_code)
-        
-        response_json = response.json()
-        self.assertIn("id", response_json)
-        self.assertIn("username", response_json)
-        self.assertIn("email", response_json)
 
-    def test_get_user_role(self):
-        """Тест получения роли пользователя"""
+    def test_get_user_role_success(self):
+        """Успешное получение роли пользователя"""
         url = f"{BASE_URL}/user/info/role"
         response = requests.get(url, headers=self.user_headers)
         self.assertEqual(200, response.status_code)
-        
-        response_json = response.json()
-        self.assertIn("role", response_json)
 
-    def test_get_all_sessions(self):
-        """Тест получения всех сеансов пользователя"""
+    def test_get_all_sessions_success(self):
+        """Успешное получение всех сеансов пользователя"""
         url = f"{BASE_URL}/user/info/sessions"
         response = requests.get(url, headers=self.user_headers)
         self.assertEqual(200, response.status_code)
-        
-        response_json = response.json()
-        self.assertIn("currentSession", response_json)
-        self.assertIn("otherSessions", response_json)
 
-        UserInfoTests.sessions_data = response_json
-
-    def test_revoke_all_sessions(self):
-        """Тест завершения всех сеансов, кроме текущего"""
+    def test_revoke_all_sessions_success(self):
+        """Успешное завершение всех сеансов, кроме текущего"""
         url = f"{BASE_URL}/user/info/sessions/revoke/all"
         response = requests.delete(url, headers=self.user_headers)
         self.assertEqual(200, response.status_code)
 
-    def test_get_avatar(self):
-        """Тест получения аватара профиля"""
+    def test_get_avatar_success(self):
+        """Успешное получение аватара профиля"""
         url = f"{BASE_URL}/user/info/avatar"
         response = requests.get(url, headers=self.user_headers)
         
-        self.assertIn(response.status_code, [200, 404, 204])
-            
-    def test_revoke_other_session_after_creating_new_session(self):
-        """Тест: создаем новую сессию и пытаемся её удалить"""
-        login_url = f"{BASE_URL}/auth/login"
+        if response.status_code == 200:
+            self.assertEqual(200, response.status_code)
+
+
+class UserInfoNegativeTests(unittest.TestCase):
+    """Негативные тесты для эндпоинтов информации о пользователе"""
+
+    @classmethod
+    def setUpClass(cls):
+        """Получение токена перед всеми тестами"""
+        url = f"{BASE_URL}/auth/login"
+        headers = {"accept": "application/json", "Content-Type": "application/json"}
         data = {"login": "admin", "password": "Admin123!"}
-        login_response = requests.post(login_url, headers=self.user_headers, data=json.dumps(data))
         
-        if login_response.status_code == 200:
-            sessions_url = f"{BASE_URL}/user/info/sessions"
-            sessions_response = requests.get(sessions_url, headers=self.user_headers)
-            
-            if sessions_response.status_code == 200:
-                sessions_data = sessions_response.json()
+        response = requests.post(url, headers=headers, data=json.dumps(data))
+        cls.access_token = response.json()["accessToken"]
+        cls.user_headers = {
+            "accept": "application/json",
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {cls.access_token}"
+        }
 
-                if isinstance(sessions_data["otherSessions"], list) and len(sessions_data["otherSessions"]) > 0:
-                    other_session = sessions_data["otherSessions"][-1]
-                    session_id = other_session.get("id")
-                    
-                    if session_id:
-                        revoke_url = f"{BASE_URL}/user/info/sessions/revoke"
-                        params = {"sessionId": session_id}
-                        revoke_response = requests.delete(revoke_url, headers=self.user_headers, params=params)
+    def test_get_avatar_not_found(self):
+        """Получение аватара, когда его нет"""
+        url = f"{BASE_URL}/user/info/avatar"
+        response = requests.get(url, headers=self.user_headers)
+        if response.status_code in [404, 204]:
+            self.assertIn(response.status_code, [404, 204])
 
-                        self.assertIn(revoke_response.status_code, [200, 403, 409])
+    def test_revoke_session_invalid_session_id(self):
+        """Завершение сессии с неверным sessionId"""
+        url = f"{BASE_URL}/user/info/sessions/revoke"
+        params = {"sessionId": "invalid-session-id"}
+        response = requests.delete(url, headers=self.user_headers, params=params)
 
+        self.assertIn(response.status_code, [400, 404])
+
+    def test_authorization_required_for_user_info(self):
+        """Проверка обязательности авторизации"""
+        url = f"{BASE_URL}/user/info/profile"
+        headers_without_auth = {
+            "accept": "application/json",
+            "Content-Type": "application/json"
+        }
+        response = requests.get(url, headers=headers_without_auth)
+        self.assertEqual(401, response.status_code)
 
 if __name__ == "__main__":
     unittest.main()

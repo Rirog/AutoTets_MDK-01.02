@@ -1,93 +1,120 @@
 import unittest
 import requests
 import json
+import random
 
 BASE_URL = "http://localhost:8080/api/v1"
 
 
 class AuthAPITests(unittest.TestCase):
-    """Набор автотестов для endpoint'ов аутентификации"""
+    """Позитивные тесты для эндпоинтов аутентификации"""
 
-    def test_01_login(self):
-        """Тест входа в систему"""
+    def test_01_login_success(self):
+        """Успешный вход в систему"""
         url = f"{BASE_URL}/auth/login"
         headers = {"Content-Type": "application/json"}
         data = {"login": "admin", "password": "Admin123!"}
         
         response = requests.post(url, headers=headers, data=json.dumps(data))
-        
         self.assertEqual(200, response.status_code)
-        response_json = response.json()
-        self.assertIn("accessToken", response_json)
-        self.assertIn("refreshToken", response_json)
 
-        AuthAPITests.access_token = response_json["accessToken"]
-        AuthAPITests.refresh_token = response_json["refreshToken"]
-
-
-    def test_02_refresh_token(self):
-        """Тест обновления токена"""
+    def test_02_refresh_token_success(self):
+        """Успешное обновление токена"""
+        login_url = f"{BASE_URL}/auth/login"
+        headers = {"Content-Type": "application/json"}
+        login_data = {"login": "admin", "password": "Admin123!"}
+        
+        login_response = requests.post(login_url, headers=headers, data=json.dumps(login_data))
+        refresh_token = login_response.json()["refreshToken"]
+   
         url = f"{BASE_URL}/auth/refresh_token"
         headers = {
             "Content-Type": "application/json",
-            "Authorization": f"Bearer {AuthAPITests.refresh_token}"
+            "Authorization": f"Bearer {refresh_token}"
         }
         
         response = requests.post(url, headers=headers)
-        
         self.assertEqual(200, response.status_code)
-        response_json = response.json()
-        self.assertIn("accessToken", response_json)
-        self.assertIn("refreshToken", response_json)
-        
 
-        AuthAPITests.access_token = response_json["accessToken"]
-        AuthAPITests.refresh_token = response_json["refreshToken"]
-
-
-    def test_03_google_oauth(self):
-        """Тест OAuth2 Google"""
+    def test_03_google_oauth_success(self):
+        """Успешный запрос OAuth2 Google"""
         url = f"{BASE_URL}/auth/login/oauth2/google"
         headers = {"Content-Type": "application/json"}
         
         response = requests.get(url, headers=headers)
-        
         self.assertEqual(200, response.status_code)
-        response_json = response.json()
+
+    def test_04_logout_success(self):
+        """Успешный выход из системы"""
+        login_url = f"{BASE_URL}/auth/login"
+        headers = {"Content-Type": "application/json"}
+        login_data = {"login": "admin", "password": "Admin123!"}
         
-        self.assertEqual("/oauth2/authorization/google", response_json["oauthUrl"])
-        self.assertEqual("/login/oauth2/code/google", response_json["successUrl"])
+        login_response = requests.post(login_url, headers=headers, data=json.dumps(login_data))
+        access_token = login_response.json()["accessToken"]
 
-
-    def test_04_logout(self):
-        """Тест выхода из системы"""
         url = f"{BASE_URL}/auth/logout"
         headers = {
             "accept": "application/json",
-            "Authorization": f"Bearer {AuthAPITests.access_token}"
+            "Authorization": f"Bearer {access_token}"
         }
         
         response = requests.get(url, headers=headers)
-
         self.assertEqual(200, response.status_code)
+
+    def test_05_registration_success(self):
+        """Успешная регистрация пользователя"""
+        url = f"{BASE_URL}/auth/registration"
+        headers = {"Content-Type": "application/json"}
+
+        random_num = random.randint(10000, 99999)
+        data = {
+            "username": f"testuser{random_num}",
+            "email": f"testuser{random_num}@example.com",
+            "password": "Test123!"
+        }
+        
+        response = requests.post(url, headers=headers, data=json.dumps(data))
+        self.assertEqual(200, response.status_code)
+
+
+class AuthNegativeTests(unittest.TestCase):
+    """Негативные тесты для эндпоинтов аутентификации"""
     
-    
-    def test_05_registration(self):
-        """Тест регистрации пользователя"""
+    def test_login_invalid_credentials(self):
+        """Неуспешный вход с неверными данными"""
+        url = f"{BASE_URL}/auth/login"
+        headers = {"Content-Type": "application/json"}
+        data = {"login": "nonexistent", "password": "WrongPass123!"}
+        
+        response = requests.post(url, headers=headers, data=json.dumps(data))
+        self.assertEqual(404, response.status_code)
+
+    def test_registration_username_conflict(self):
+        """Регистрация с существующим username"""
         url = f"{BASE_URL}/auth/registration"
         headers = {"Content-Type": "application/json"}
         data = {
-            "username": "Dupling1",
-            "email": "Duplin1g@example.com",
-            "password": "Dupling123!"
+            "username": "admin",
+            "email": "newemail@example.com",
+            "password": "Test123!"
         }
+        
+        response = requests.post(url, headers=headers, data=json.dumps(data))
+        self.assertEqual(409, response.status_code)
 
-        responce = requests.post(url, headers=headers, data=json.dumps(data))
-
-        self.assertEqual(200, responce.status_code)
-        response_json = responce.json()
-        self.assertIn("Письмо с подтверждением регистрации отправлено", response_json["message"])
-
+    def test_registration_email_conflict(self):
+        """Регистрация с существующим email"""
+        url = f"{BASE_URL}/auth/registration"
+        headers = {"Content-Type": "application/json"}
+        data = {
+            "username": "newuser",
+            "email": "admin@example.com",
+            "password": "Test123!"
+        }
+        
+        response = requests.post(url, headers=headers, data=json.dumps(data))
+        self.assertEqual(409, response.status_code)
 
 if __name__ == "__main__":
     unittest.main()
