@@ -2,6 +2,8 @@ import unittest
 import requests
 import json
 
+from test_utils import TestOutput
+
 BASE_URL = "http://localhost:8080/api/v1"
 
 
@@ -28,24 +30,28 @@ class UserInfoPositiveTests(unittest.TestCase):
         url = f"{BASE_URL}/user/info/profile"
         response = requests.get(url, headers=self.user_headers)
         self.assertEqual(200, response.status_code)
+        TestOutput.print_result(self._testMethodName, response)
 
     def test_get_user_role_success(self):
         """Успешное получение роли пользователя"""
         url = f"{BASE_URL}/user/info/role"
         response = requests.get(url, headers=self.user_headers)
         self.assertEqual(200, response.status_code)
+        TestOutput.print_result(self._testMethodName, response)
 
     def test_get_all_sessions_success(self):
         """Успешное получение всех сеансов пользователя"""
         url = f"{BASE_URL}/user/info/sessions"
         response = requests.get(url, headers=self.user_headers)
         self.assertEqual(200, response.status_code)
+        TestOutput.print_result(self._testMethodName, response)
 
     def test_revoke_all_sessions_success(self):
         """Успешное завершение всех сеансов, кроме текущего"""
         url = f"{BASE_URL}/user/info/sessions/revoke/all"
         response = requests.delete(url, headers=self.user_headers)
         self.assertEqual(200, response.status_code)
+        TestOutput.print_result(self._testMethodName, response)
 
     def test_get_avatar_success(self):
         """Успешное получение аватара профиля"""
@@ -54,6 +60,7 @@ class UserInfoPositiveTests(unittest.TestCase):
         
         if response.status_code == 200:
             self.assertEqual(200, response.status_code)
+            TestOutput.print_result(self._testMethodName, response)
 
 
 class UserInfoNegativeTests(unittest.TestCase):
@@ -80,6 +87,7 @@ class UserInfoNegativeTests(unittest.TestCase):
         response = requests.get(url, headers=self.user_headers)
         if response.status_code in [404, 204]:
             self.assertIn(response.status_code, [404, 204])
+            TestOutput.print_result(self._testMethodName, response)
 
     def test_revoke_session_invalid_session_id(self):
         """Завершение сессии с неверным sessionId"""
@@ -88,6 +96,7 @@ class UserInfoNegativeTests(unittest.TestCase):
         response = requests.delete(url, headers=self.user_headers, params=params)
 
         self.assertIn(response.status_code, [400, 404])
+        TestOutput.print_result(self._testMethodName, response)
 
     def test_authorization_required_for_user_info(self):
         """Проверка обязательности авторизации"""
@@ -98,6 +107,7 @@ class UserInfoNegativeTests(unittest.TestCase):
         }
         response = requests.get(url, headers=headers_without_auth)
         self.assertEqual(401, response.status_code)
+        TestOutput.print_result(self._testMethodName, response)
 
 if __name__ == "__main__":
     unittest.main()

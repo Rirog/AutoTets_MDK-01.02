@@ -2,6 +2,8 @@ import unittest
 import requests
 import json
 
+from test_utils import TestOutput
+
 BASE_URL = "http://localhost:8080/api/v1"
 
 
@@ -28,6 +30,7 @@ class SuperAdminPositiveTests(unittest.TestCase):
         url = f"{BASE_URL}/admin/list/admins"
         response = requests.get(url, headers=self.user_headers)
         self.assertEqual(200, response.status_code)
+        TestOutput.print_result(self._testMethodName, response)
 
     def test_get_all_admins_info_with_params_success(self):
         """Успешное получение информации об администраторах с параметрами"""
@@ -35,6 +38,7 @@ class SuperAdminPositiveTests(unittest.TestCase):
         params = {"username": "admin", "email": "admin@example.com"}
         response = requests.get(url, headers=self.user_headers, params=params)
         self.assertEqual(200, response.status_code)
+        TestOutput.print_result(self._testMethodName, response)
 
 class SuperAdminNegativeTests(unittest.TestCase):
     """Негативные тесты для эндпоинтов супер-администратора"""
@@ -65,6 +69,7 @@ class SuperAdminNegativeTests(unittest.TestCase):
         response = requests.post(url, headers=self.user_headers, data=json.dumps(data))
         if response.status_code == 403:
             self.assertEqual(403, response.status_code)
+            TestOutput.print_result(self._testMethodName, response)
 
     def test_create_new_admin_username_conflict(self):
         """Создание администратора с существующим username"""
@@ -77,6 +82,7 @@ class SuperAdminNegativeTests(unittest.TestCase):
         response = requests.post(url, headers=self.user_headers, data=json.dumps(data))
         if response.status_code == 409:
             self.assertEqual(409, response.status_code)
+            TestOutput.print_result(self._testMethodName, response)
 
     def test_get_admin_info_not_found(self):
         """Получение информации о несуществующем администраторе"""
@@ -85,6 +91,7 @@ class SuperAdminNegativeTests(unittest.TestCase):
         response = requests.get(url, headers=self.user_headers, params=params)
         if response.status_code == 404:
             self.assertEqual(404, response.status_code)
+            TestOutput.print_result(self._testMethodName, response)
 
     def test_delete_admin_not_found(self):
         """Удаление несуществующего администратора"""
@@ -93,6 +100,7 @@ class SuperAdminNegativeTests(unittest.TestCase):
         response = requests.delete(url, headers=self.user_headers, params=params)
         if response.status_code == 404:
             self.assertEqual(404, response.status_code)
+            TestOutput.print_result(self._testMethodName, response)
 
     def test_delete_admin_no_permission(self):
         """Удаление администратора без прав"""
@@ -101,6 +109,7 @@ class SuperAdminNegativeTests(unittest.TestCase):
         response = requests.delete(url, headers=self.user_headers, params=params)
         if response.status_code == 403:
             self.assertEqual(403, response.status_code)
+            TestOutput.print_result(self._testMethodName, response)
 
     def test_authorization_required_for_superadmin(self):
         """Проверка обязательности авторизации"""
@@ -111,6 +120,7 @@ class SuperAdminNegativeTests(unittest.TestCase):
         }
         response = requests.get(url, headers=headers_without_auth)
         self.assertEqual(401, response.status_code)
+        TestOutput.print_result(self._testMethodName, response)
 
 if __name__ == "__main__":
     unittest.main()

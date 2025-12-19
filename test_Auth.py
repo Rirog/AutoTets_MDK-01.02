@@ -3,6 +3,8 @@ import requests
 import json
 import random
 
+from test_utils import TestOutput
+
 BASE_URL = "http://localhost:8080/api/v1"
 
 
@@ -17,6 +19,7 @@ class AuthAPITests(unittest.TestCase):
         
         response = requests.post(url, headers=headers, data=json.dumps(data))
         self.assertEqual(200, response.status_code)
+        TestOutput.print_result(self._testMethodName, response)
 
     def test_02_refresh_token_success(self):
         """Успешное обновление токена"""
@@ -35,6 +38,7 @@ class AuthAPITests(unittest.TestCase):
         
         response = requests.post(url, headers=headers)
         self.assertEqual(200, response.status_code)
+        TestOutput.print_result(self._testMethodName, response)
 
     def test_03_google_oauth_success(self):
         """Успешный запрос OAuth2 Google"""
@@ -43,6 +47,7 @@ class AuthAPITests(unittest.TestCase):
         
         response = requests.get(url, headers=headers)
         self.assertEqual(200, response.status_code)
+        TestOutput.print_result(self._testMethodName, response)
 
     def test_04_logout_success(self):
         """Успешный выход из системы"""
@@ -61,6 +66,7 @@ class AuthAPITests(unittest.TestCase):
         
         response = requests.get(url, headers=headers)
         self.assertEqual(200, response.status_code)
+        TestOutput.print_result(self._testMethodName, response)
 
     def test_05_registration_success(self):
         """Успешная регистрация пользователя"""
@@ -76,6 +82,7 @@ class AuthAPITests(unittest.TestCase):
         
         response = requests.post(url, headers=headers, data=json.dumps(data))
         self.assertEqual(200, response.status_code)
+        TestOutput.print_result(self._testMethodName, response)
 
 
 class AuthNegativeTests(unittest.TestCase):
@@ -89,6 +96,7 @@ class AuthNegativeTests(unittest.TestCase):
         
         response = requests.post(url, headers=headers, data=json.dumps(data))
         self.assertEqual(404, response.status_code)
+        TestOutput.print_result(self._testMethodName, response)
 
     def test_registration_username_conflict(self):
         """Регистрация с существующим username"""
@@ -102,6 +110,7 @@ class AuthNegativeTests(unittest.TestCase):
         
         response = requests.post(url, headers=headers, data=json.dumps(data))
         self.assertEqual(409, response.status_code)
+        TestOutput.print_result(self._testMethodName, response)
 
     def test_registration_email_conflict(self):
         """Регистрация с существующим email"""
@@ -115,6 +124,7 @@ class AuthNegativeTests(unittest.TestCase):
         
         response = requests.post(url, headers=headers, data=json.dumps(data))
         self.assertEqual(409, response.status_code)
+        TestOutput.print_result(self._testMethodName, response)
 
 if __name__ == "__main__":
     unittest.main()

@@ -3,6 +3,8 @@ import requests
 import json
 import random
 
+from test_utils import TestOutput
+
 BASE_URL = "http://localhost:8080/api/v1"
 
 
@@ -17,6 +19,7 @@ class RecoveryPositiveTests(unittest.TestCase):
         
         response = requests.post(url, headers=headers, data=json.dumps(data))
         self.assertEqual(200, response.status_code)
+        TestOutput.print_result(self._testMethodName, response)
 
     def test_resend_activation_success(self):
         """Успешная повторная отправка активации"""
@@ -36,6 +39,7 @@ class RecoveryPositiveTests(unittest.TestCase):
         
         response = requests.post(url, headers=reg_headers, data=json.dumps(data))
         self.assertEqual(200, response.status_code)
+        TestOutput.print_result(self._testMethodName, response)
 
 
 class RecoveryNegativeTests(unittest.TestCase):
@@ -49,6 +53,7 @@ class RecoveryNegativeTests(unittest.TestCase):
         
         response = requests.post(url, headers=headers, data=json.dumps(data))
         self.assertEqual(400, response.status_code)
+        TestOutput.print_result(self._testMethodName, response)
 
     def test_reset_password_empty_email(self):
         """Сброс пароля с пустым email"""
@@ -58,6 +63,7 @@ class RecoveryNegativeTests(unittest.TestCase):
         
         response = requests.post(url, headers=headers, data=json.dumps(data))
         self.assertEqual(400, response.status_code)
+        TestOutput.print_result(self._testMethodName, response)
 
 
 if __name__ == "__main__":
