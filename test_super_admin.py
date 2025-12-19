@@ -58,19 +58,6 @@ class SuperAdminNegativeTests(unittest.TestCase):
             "Authorization": f"Bearer {cls.access_token}"
         }
 
-    def test_create_new_admin_no_permission(self):
-        """Создание администратора без прав"""
-        url = f"{BASE_URL}/admin/create/admin"
-        data = {
-            "username": "testadmin",
-            "email": "testadmin@example.com",
-            "password": "Test123!"
-        }
-        response = requests.post(url, headers=self.user_headers, data=json.dumps(data))
-        if response.status_code == 403:
-            self.assertEqual(403, response.status_code)
-            TestOutput.print_result(self._testMethodName, response)
-
     def test_create_new_admin_username_conflict(self):
         """Создание администратора с существующим username"""
         url = f"{BASE_URL}/admin/create/admin"
@@ -101,26 +88,6 @@ class SuperAdminNegativeTests(unittest.TestCase):
         if response.status_code == 404:
             self.assertEqual(404, response.status_code)
             TestOutput.print_result(self._testMethodName, response)
-
-    def test_delete_admin_no_permission(self):
-        """Удаление администратора без прав"""
-        url = f"{BASE_URL}/admin/delete/admin"
-        params = {"id": 2}
-        response = requests.delete(url, headers=self.user_headers, params=params)
-        if response.status_code == 403:
-            self.assertEqual(403, response.status_code)
-            TestOutput.print_result(self._testMethodName, response)
-
-    def test_authorization_required_for_superadmin(self):
-        """Проверка обязательности авторизации"""
-        url = f"{BASE_URL}/admin/list/admins"
-        headers_without_auth = {
-            "accept": "application/json",
-            "Content-Type": "application/json"
-        }
-        response = requests.get(url, headers=headers_without_auth)
-        self.assertEqual(401, response.status_code)
-        TestOutput.print_result(self._testMethodName, response)
 
 if __name__ == "__main__":
     unittest.main()

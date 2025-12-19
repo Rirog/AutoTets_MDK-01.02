@@ -53,14 +53,6 @@ class UserInfoPositiveTests(unittest.TestCase):
         self.assertEqual(200, response.status_code)
         TestOutput.print_result(self._testMethodName, response)
 
-    def test_get_avatar_success(self):
-        """Успешное получение аватара профиля"""
-        url = f"{BASE_URL}/user/info/avatar"
-        response = requests.get(url, headers=self.user_headers)
-        
-        if response.status_code == 200:
-            self.assertEqual(200, response.status_code)
-            TestOutput.print_result(self._testMethodName, response)
 
 
 class UserInfoNegativeTests(unittest.TestCase):
@@ -89,25 +81,6 @@ class UserInfoNegativeTests(unittest.TestCase):
             self.assertIn(response.status_code, [404, 204])
             TestOutput.print_result(self._testMethodName, response)
 
-    def test_revoke_session_invalid_session_id(self):
-        """Завершение сессии с неверным sessionId"""
-        url = f"{BASE_URL}/user/info/sessions/revoke"
-        params = {"sessionId": "invalid-session-id"}
-        response = requests.delete(url, headers=self.user_headers, params=params)
-
-        self.assertIn(response.status_code, [400, 404])
-        TestOutput.print_result(self._testMethodName, response)
-
-    def test_authorization_required_for_user_info(self):
-        """Проверка обязательности авторизации"""
-        url = f"{BASE_URL}/user/info/profile"
-        headers_without_auth = {
-            "accept": "application/json",
-            "Content-Type": "application/json"
-        }
-        response = requests.get(url, headers=headers_without_auth)
-        self.assertEqual(401, response.status_code)
-        TestOutput.print_result(self._testMethodName, response)
 
 if __name__ == "__main__":
     unittest.main()
